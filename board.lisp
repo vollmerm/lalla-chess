@@ -1,18 +1,3 @@
-(sb-c:defknown %bsf ((unsigned-byte 64)) (unsigned-byte 32) (sb-c::movable sb-c::foldable sb-c::flushable))
-(sb-c:define-vop (%bsf)
-  (:policy :fast)
-  (:translate %bsf)
-  (:note "Scans forward for the first 1 bit")
-  (:args (a :scs (sb-vm::unsigned-reg) :target b))
-  (:arg-types sb-vm::unsigned-byte-64)
-  (:results (b :scs (sb-vm::unsigned-reg)))
-  (:result-types sb-vm::unsigned-num)
-  (:generator
-    0
-    (sb-c::inst sb-vm::bsf b a)))
-(defun %bsf (a)
-  (%bsf a))
-  
 (defun make-bb-from-string (b)
   (declare (optimize speed (safety 0)) 
            (type string b))
@@ -39,15 +24,6 @@
 (defconstant full-rank (list 1 1 1 1 1 1 1 1))
 (defconstant empty-rank (list 0 0 0 0 0 0 0 0))
 
-(print (make-bb 
-	(list full-rank
-	      full-rank
-	      full-rank
-	      full-rank
-	      full-rank
-	      full-rank
-	      full-rank
-	      empty-rank)))
 
 (defmacro make-precomputed-table (name list)
   `(declaim (type (simple-array (unsigned-byte 64) (8)) ,name))
@@ -64,8 +40,10 @@
 	(push this-list rank-list)))
     rank-list))
 
+(make-precomputed-table clear-rank clear-rank-list)
+
 (defun 1-at (n)
-  (let ((line clear-rank))
+  (let ((line empty-rank))
     (loop
        for cell on line
        for i from 0
@@ -85,11 +63,6 @@
 
 (make-precomputed-table clear-file clear-file-list)
 
-;(declaim (type (simple-array (unsigned-byte 64) (8)) clear-file))
-;(defconstant clear-file 
-;             (make-array 8 :element-type '(unsigned-byte 64)
-;                         :initial-contents (mapcar #'make-bb clear-file-list)))
-
 (defconstant mask-rank-list
              (mapcar #'inverse clear-rank-list))
 
@@ -98,6 +71,8 @@
 (defconstant mask-file-list
              (mapcar #'transpose mask-rank-list))
 
+(make-precomputed-table mask-file mask-file-list)
+
 (defconstant diagonal-ones-list
   (loop
      for i from 0 below 8
@@ -105,13 +80,15 @@
 
 (defun padlist (l)
   (if (< (length l) 8)
-      (padlist-append (cons l clear-rank-list))))
+      (padlist (cons empty-rank l)) l))
 
 (defconstant upper-left-diagonals-list
   (loop
      for i from 0 below 8
        collect (reverse (padlist 
 			 (reverse (nthcdr i diagonal-ones-list))))))
+
+(princ upper-left-diagonals-list)
 
 (make-precomputed-table upper-left-diagonals 
 			upper-left-diagonals-list)
@@ -125,6 +102,7 @@
 (defconstant upper-right-diagonals-list
   (reverse (mapcar #'reverse (mapcar #'reverse upper-left-diagonals-list))))
 
+
 (make-precomputed-table upper-right-diagonals
 			upper-right-diagonals-list)
 
@@ -132,7 +110,8 @@
   (reverse (mapcar (lambda (l) (reverse (mapcar #'reverse l))) 
 		   upper-left-diagonals-list)))
 
-(make-precomputed-table lower-left-diagonals
-			lower-left-diagonals-lsit)
 
-(make-precomputed-table clear-rank clear-rank-list)
+(make-precomputed-table lower-left-diagonals
+			lower-left-diagonals-list)
+
+
