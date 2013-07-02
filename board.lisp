@@ -1,3 +1,24 @@
+(defconstant table64 '(63 0 58 1 59 47 53 2
+                       60 39 48 27 54 33 42 3
+      	               61 51 37 40 49 18 28 20
+                       55 30 34 11 43 14 22 4
+                       62 57 46 52 38 26 32 41
+                       50 36 17 19 29 10 13 21
+                       56 45 25 31 35 16 9 12
+                       44 24 15  8 23 7 6 5))
+(defconstant index64 (make-array 64 :element-type '(unsigned-byte 16)
+                                :initial-contents table64))
+(defconstant debruijn64 #x07EDD5E59A4E28C2)
+
+(defun bitscan (bb)
+  (declare (optimize speed)
+	   (type (unsigned-byte 64) bb))
+  (let ((ashbb (ash (ldb (byte 64 0)
+			 (* (logand bb (- (lognot bb) 1))
+			    debruijn64))
+		    -58)))
+    (aref index64 ashbb)))
+
 (defun make-bb-from-string (b)
   (declare (optimize speed (safety 0)) 
            (type string b))
@@ -25,22 +46,12 @@
 (defconstant empty-rank (list 0 0 0 0 0 0 0 0))
 
 
-(defmacro make-precomputed-table (name list)
-  `(declaim (type (simple-array (unsigned-byte 64) (8)) ,name))
+(defmacro make-precomputed-table (size name list)
+  `(declaim (type (simple-array (unsigned-byte 64) (,size)) ,name))
   `(defconstant ,name
-                (make-array 8 :element-type '(unsigned-byte 64)
+                (make-array ,size :element-type '(unsigned-byte 64)
                             :initial-contents (mapcar #'make-bb ,list))))
 
-
-(defconstant clear-rank-list
-  (let ((rank-list '()))
-    (dotimes (rank 8)
-      (let ((this-list (make-list 8 :initial-element full-rank)))
-	(setf (nth rank this-list) empty-rank)
-	(push this-list rank-list)))
-    rank-list))
-
-(make-precomputed-table clear-rank clear-rank-list)
 
 (defun 1-at (n)
   (let ((line empty-rank))
@@ -54,64 +65,86 @@
 
 
 
-;(declaim (type (simple-array (unsigned-byte 64) (8)) clear-rank))
-;(defconstant clear-rank 
-;             (make-array 8 :element-type '(unsigned-byte 64)
-;                         :initial-contents (mapcar #'make-bb clear-rank-list)))
+(defconstant clear-rank-list
+  (let ((rank-list '()))
+    (dotimes (rank 8)
+      (let ((this-list (make-list 8 :initial-element full-rank)))
+	(setf (nth rank this-list) empty-rank)
+	(push this-list rank-list)))
+    rank-list))
+
+(make-precomputed-table 8 clear-rank clear-rank-list)
+
+
 (defconstant clear-file-list
             (mapcar #'transpose clear-rank-list))
 
-(make-precomputed-table clear-file clear-file-list)
+(make-precomputed-table 8 clear-file clear-file-list)
+
+(print clear-file-list)
+(print (mapcar #'make-bb clear-file-list))
 
 (defconstant mask-rank-list
              (mapcar #'inverse clear-rank-list))
 
-(make-precomputed-table mask-rank mask-rank-list)
+(make-precomputed-table 8 mask-rank mask-rank-list)
 
 (defconstant mask-file-list
              (mapcar #'transpose mask-rank-list))
 
-(make-precomputed-table mask-file mask-file-list)
+(make-precomputed-table 8 mask-file mask-file-list)
 
-(defconstant diagonal-ones-list
-  (loop
-     for i from 0 below 8
-       collect (1-at i)))
+(defun on-board (move-list)
+  (remove-if (lambda (m) 
+		   (let ((i (car m)) (j (cadr m)))
+		     (or (> i 7) (< i 0)
+			 (> j 7) (< j 0))))
+		 move-list))
 
-(defun padlist (l)
-  (if (< (length l) 8)
-      (padlist (cons empty-rank l)) l))
+(defun position-list-to-board-list (p)
+  (let ((board))
+    (loop for i from 0 to 7 do
+	 (let ((row))
+	   (loop for j from 0 to 7 do
+		(if (member (list i j) p :test #'equal)
+		    (push 1 row)
+		    (push 0 row)))
+	   (push row board)))
+    (nreverse board)))
 
-(defconstant upper-left-diagonals-list
-  (loop
-     for i from 0 below 8
-       collect (reverse (padlist 
-			 (reverse (nthcdr i diagonal-ones-list))))))
+(defun gen-move-list (func)
+  (let ((moves))
+    (loop for i from 0 to 7 do
+	 (loop for j from 0 to 7 do
+	      (push (funcall func i j) moves)))
+    moves))
+  
 
-(princ upper-left-diagonals-list)
+(defun gen-king-moves (i j)
+  (on-board  `((,(+ i 1) ,(+ j 1))
+	       (,(+ i 1) ,j)
+	       (,(+ i 1) ,(- j 1))
+	       (,(- i 1) ,(+ j 1))
+	       (,(- i 1) ,j)
+	       (,(- i 1) ,(- j 1))
+	       (,i ,(+ j 1))
+	       (,i ,(- j 1)))))
 
-(make-precomputed-table upper-left-diagonals 
-			upper-left-diagonals-list)
+(defconstant king-moves-list
+  (gen-move-list #'gen-king-moves))
 
-(defconstant lower-right-diagonals-list
-  (reverse (mapcar #'reverse upper-left-diagonals-list)))
+(defun gen-knight-moves (i j)
+  (on-board `((,(+ i 2) ,(+ j 1))
+	      (,(+ i 1) ,(+ j 2))
+	      (,(+ i 2) ,(- j 1))
+	      (,(+ i 1) ,(- j 2))
+	      (,(- i 2) ,(+ j 1))
+	      (,(- i 1) ,(+ j 2))
+	      (,(- i 2) ,(- j 1))
+	      (,(- i 1) ,(- j 2)))))
 
-(make-precomputed-table lower-right-diagonals
-			lower-right-diagonals-list)
+(make-precomputed-table 
+ 64 king-positions (mapcar #'position-list-to-board-list king-moves-list))
 
-(defconstant upper-right-diagonals-list
-  (reverse (mapcar #'reverse (mapcar #'reverse upper-left-diagonals-list))))
-
-
-(make-precomputed-table upper-right-diagonals
-			upper-right-diagonals-list)
-
-(defconstant lower-left-diagonals-list
-  (reverse (mapcar (lambda (l) (reverse (mapcar #'reverse l))) 
-		   upper-left-diagonals-list)))
-
-
-(make-precomputed-table lower-left-diagonals
-			lower-left-diagonals-list)
-
-
+(print (mapcar #'position-list-to-board-list king-moves-list))
+(print (mapcar #'make-bb (mapcar #'position-list-to-board-list king-moves-list)))
