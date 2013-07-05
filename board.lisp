@@ -109,8 +109,6 @@
 	       (,i ,(+ j 1))
 	       (,i ,(- j 1)))))
 
-(defconstant king-moves-list
-  (gen-move-list #'gen-king-moves))
 
 (defun gen-knight-moves (i j)
   (on-board `((,(+ i 2) ,(+ j 1))
@@ -142,6 +140,74 @@
 		  (,(- i 1) ,j)))
       (on-board `((,(- i 1) ,j)))))
 
+(defun line-up (i j)
+  (let ((moves))
+    (loop for mi from (+ i 1) to 7 do
+	 (push `(,mi ,j) moves))
+    moves))
+
+(defun line-down (i j)
+  (let ((moves))
+    (loop for mi from (- i 1) downto 0 do
+	 (push `(,mi ,j) moves))
+    moves))
+
+(defun line-right (i j)
+  (let ((moves))
+    (loop for mj from (+ j 1) to 7 do
+	 (push `(,i ,mj) moves))
+    moves))
+
+(defun line-left (i j)
+  (let ((moves))
+    (loop for mj from (- j 1) downto 0 do
+	 (push `(,i ,mj) moves))
+    moves))
+
+(defun diag-up-right (i j)
+  (let ((moves))
+    (let ((mi (+ i 1))
+	  (mj (+ j 1)))
+      (loop while (and (<= mi 7) (<= mj 7)) do
+	   (push `(,mi ,mj) moves)
+	   (incf mi)
+	   (incf mj)))
+    moves))
+
+(defun diag-down-right (i j)
+  (let ((moves))
+    (let ((mi (- i 1))
+	  (mj (+ j 1)))
+      (loop while (and (>= mi 0) (<= mj 7)) do
+	   (push `(,mi ,mj) moves)
+	   (decf mi)
+	   (incf mj)))
+    moves))
+
+(defun diag-up-left (i j)
+  (let ((moves))
+    (let ((mi (+ i 1))
+	  (mj (- j 1)))
+      (loop while (and (<= mi 7) (>= mj 0)) do
+	   (push `(,mi ,mj) moves)
+	   (incf mi)
+	   (decf mj)))
+    moves))
+
+(defun diag-down-left (i j)
+  (let ((moves))
+    (let ((mi (- i 1))
+	  (mj (- j 1)))
+      (loop while (and (>= mi 0) (>= mj 0)) do
+	   (push `(,mi ,mj) moves)
+	   (decf mi)
+	   (decf mj)))
+    moves))
+
+
+(defconstant king-moves-list
+  (gen-move-list #'gen-king-moves))
+
 (defconstant knight-moves-list
   (gen-move-list #'gen-knight-moves))   
 
@@ -157,6 +223,7 @@
 	   (push index position-list)
 	   (setf bb (logxor bb (ash 1 index)))))
     position-list))
+
 
 (print (mapcar #'position-list-to-board-list king-moves-list))
 (print (mapcar #'make-bb (mapcar #'position-list-to-board-list king-moves-list)))
