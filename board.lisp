@@ -1,24 +1,3 @@
-(defconstant table64 '(63 0 58 1 59 47 53 2
-                       60 39 48 27 54 33 42 3
-      	               61 51 37 40 49 18 28 20
-                       55 30 34 11 43 14 22 4
-                       62 57 46 52 38 26 32 41
-                       50 36 17 19 29 10 13 21
-                       56 45 25 31 35 16 9 12
-                       44 24 15  8 23 7 6 5))
-(defconstant index64 (make-array 64 :element-type '(unsigned-byte 16)
-                                :initial-contents table64))
-(defconstant debruijn64 #x07EDD5E59A4E28C2)
-
-(defun bitscan (bb)
-  (declare (optimize speed)
-	   (type (unsigned-byte 64) bb))
-  (let ((ashbb (ash (ldb (byte 64 0)
-			 (* (logand bb (- (lognot bb) 1))
-			    debruijn64))
-		    -58)))
-    (aref index64 ashbb)))
-
 (defun make-bb-from-string (b)
   (declare (optimize speed (safety 0)) 
            (type string b))
@@ -143,8 +122,54 @@
 	      (,(- i 2) ,(- j 1))
 	      (,(- i 1) ,(- j 2)))))
 
+(defun gen-pawn-diagonal-up (i j)
+  (on-board `((,(+ i 1) ,(- j 1))
+	      (,(+ i 1) ,(+ j 1)))))
+
+(defun gen-pawn-diagonal-down (i j)
+  (on-board `((,(- i 1) ,(- j 1))
+	      (,(- i 1) ,(+ j 1)))))
+
+(defun get-pawn-up (i j)
+  (if (= i 1)
+      (on-board `((,(+ i 2) ,j)
+		  (,(+ i 1) ,j)))
+      (on-board `((,(+ i 1) ,j)))))
+
+(defun get-pawn-down (i j)
+  (if (= i 6)
+      (on-board `((,(- i 2) ,j)
+		  (,(- i 1) ,j)))
+      (on-board `((,(- i 1) ,j)))))
+
+(defconstant knight-moves-list
+  (gen-move-list #'gen-knight-moves))   
+
 (make-precomputed-table 
  64 king-positions (mapcar #'position-list-to-board-list king-moves-list))
 
+(defun position-list (bb)
+  (declare (optimize speed)
+	   (type (unsigned-byte 64) bb))
+  (let ((position-list))
+    (loop while (> bb 0) do
+	 (let ((index (- (integer-length bb) 1)))
+	   (push index position-list)
+	   (setf bb (logxor bb (ash 1 index)))))
+    position-list))
+
 (print (mapcar #'position-list-to-board-list king-moves-list))
 (print (mapcar #'make-bb (mapcar #'position-list-to-board-list king-moves-list)))
+(print (mapcar #'position-list
+	       (mapcar #'make-bb (mapcar #'position-list-to-board-list king-moves-list))))
+(print (integer-length 4))
+(print (logxor 4 (ash 1 (- (integer-length 4) 1))))
+(print (position-list (make-bb (list 
+				empty-rank
+				empty-rank
+				empty-rank
+				empty-rank
+				empty-rank
+				empty-rank
+				empty-rank
+				(list 1 0 0 0 0 0 0 1)))))
