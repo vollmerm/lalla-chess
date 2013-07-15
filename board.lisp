@@ -95,7 +95,8 @@
   (let ((moves))
     (loop for i from 0 to 7 do
 	 (loop for j from 0 to 7 do
-	      (push (funcall func i j) moves)))
+	      (let ((move-set (funcall func i j)))
+		(push move-set moves))))
     moves))
   
 
@@ -120,51 +121,51 @@
 	      (,(- i 2) ,(- j 1))
 	      (,(- i 1) ,(- j 2)))))
 
-(defun gen-pawn-diagonal-up (i j)
+(defun gen-pawn-diagonal-down (i j)
   (on-board `((,(+ i 1) ,(- j 1))
 	      (,(+ i 1) ,(+ j 1)))))
 
-(defun gen-pawn-diagonal-down (i j)
+(defun gen-pawn-diagonal-up (i j)
   (on-board `((,(- i 1) ,(- j 1))
 	      (,(- i 1) ,(+ j 1)))))
 
-(defun get-pawn-up (i j)
+(defun get-pawn-down (i j)
   (if (= i 1)
       (on-board `((,(+ i 2) ,j)
 		  (,(+ i 1) ,j)))
       (on-board `((,(+ i 1) ,j)))))
 
-(defun get-pawn-down (i j)
+(defun get-pawn-up (i j)
   (if (= i 6)
       (on-board `((,(- i 2) ,j)
 		  (,(- i 1) ,j)))
       (on-board `((,(- i 1) ,j)))))
 
-(defun line-up (i j)
+(defun gen-line-down (i j)
   (let ((moves))
     (loop for mi from (+ i 1) to 7 do
 	 (push `(,mi ,j) moves))
     moves))
 
-(defun line-down (i j)
+(defun gen-line-up (i j)
   (let ((moves))
     (loop for mi from (- i 1) downto 0 do
 	 (push `(,mi ,j) moves))
     moves))
 
-(defun line-right (i j)
+(defun gen-line-right (i j)
   (let ((moves))
     (loop for mj from (+ j 1) to 7 do
 	 (push `(,i ,mj) moves))
     moves))
 
-(defun line-left (i j)
+(defun gen-line-left (i j)
   (let ((moves))
     (loop for mj from (- j 1) downto 0 do
 	 (push `(,i ,mj) moves))
     moves))
 
-(defun diag-up-right (i j)
+(defun gen-diag-down-right (i j)
   (let ((moves))
     (let ((mi (+ i 1))
 	  (mj (+ j 1)))
@@ -174,7 +175,7 @@
 	   (incf mj)))
     moves))
 
-(defun diag-down-right (i j)
+(defun gen-diag-up-right (i j)
   (let ((moves))
     (let ((mi (- i 1))
 	  (mj (+ j 1)))
@@ -184,7 +185,7 @@
 	   (incf mj)))
     moves))
 
-(defun diag-up-left (i j)
+(defun gen-diag-down-left (i j)
   (let ((moves))
     (let ((mi (+ i 1))
 	  (mj (- j 1)))
@@ -194,7 +195,7 @@
 	   (decf mj)))
     moves))
 
-(defun diag-down-left (i j)
+(defun gen-diag-up-left (i j)
   (let ((moves))
     (let ((mi (- i 1))
 	  (mj (- j 1)))
@@ -204,15 +205,89 @@
 	   (decf mj)))
     moves))
 
-
 (defconstant king-moves-list
   (gen-move-list #'gen-king-moves))
 
 (defconstant knight-moves-list
   (gen-move-list #'gen-knight-moves))   
 
+(defconstant pawn-up-list
+  (gen-move-list #'gen-pawn-up))
+
+(defconstant pawn-down-list
+  (gen-move-list #'gen-pawn-down))
+
+(defconstant pawn-up-diag-list
+  (gen-move-list #'gen-pawn-diagonal-up))
+
+(defconstant pawn-down-diag-list
+  (gen-move-list #'gen-pawn-diagonal-down))
+
+(defconstant line-up-list
+  (gen-move-list #'gen-line-up))
+
+(defconstant line-down-list
+  (gen-move-list #'gen-line-down))
+
+(defconstant line-left-list
+  (gen-move-list #'gen-line-left))
+
+(defconstant line-right-list
+  (gen-move-list #'gen-line-right))
+
+(defconstant diag-up-right-list
+  (gen-move-list #'gen-diag-up-right))
+
+(defconstant diag-up-left-list
+  (gen-move-list #'gen-diag-up-left))
+
+(defconstant diag-down-right-list
+  (gen-move-list #'gen-diag-down-right))
+
+(defconstant diag-down-left-list
+  (gen-move-list #'gen-diag-down-left))
+
 (make-precomputed-table 
  64 king-positions (mapcar #'position-list-to-board-list king-moves-list))
+
+(make-precomputed-table
+ 64 knight-positions (mapcar #'position-list-to-board-list knight-moves-list))
+
+(make-precomputed-table
+ 64 pawn-up (mapcar #'position-list-to-board-list pawn-up-list))
+
+(make-precomputed-table
+ 64 pawn-down (mapcar #'position-list-to-board-list pawn-down-list))
+
+(make-precomputed-table
+ 64 pawn-up (mapcar #'position-list-to-board-list pawn-up-list))
+
+(make-precomputed-table
+ 64 line-up-diag (mapcar #'position-list-to-board-list line-up-diag-list))
+
+(make-precomputed-table
+ 64 pawn-down-diag (mapcar #'position-list-to-board-list pawn-down-diag-list))
+
+(make-precomputed-table
+ 64 line-down (mapcar #'position-list-to-board-list line-down-list))
+
+(make-precomputed-table
+ 64 line-left (mapcar #'position-list-to-board-list line-left-list))
+
+(make-precomputed-table
+ 64 line-right (mapcar #'position-list-to-board-list line-right-list))
+
+(make-precomputed-table
+ 64 diag-up-right (mapcar #'position-list-to-board-list diag-up-right-list))
+
+(make-precomputed-table
+ 64 diag-up-left (mapcar #'position-list-to-board-list diag-up-left-list))
+
+(make-precomputed-table
+ 64 diag-down-right (mapcar #'position-list-to-board-list diag-down-right-list))
+
+(make-precomputed-table
+ 64 diag-down-left (mapcar #'position-list-to-board-list diag-down-left-list))
 
 (defun position-list (bb)
   (declare (optimize speed)
@@ -224,6 +299,16 @@
 	   (setf bb (logxor bb (ash 1 index)))))
     position-list))
 
+(defun position-board (bb)
+  (format t "~%" #\linefeed)
+  (print (position-list bb))
+  (let ((list (position-list bb)))
+    (loop for i from 64 downto 0 do
+	 (if (find i list)
+	     (format t "1 ")
+	     (format t "0 "))
+	 (if (= (mod i 8) 0)
+	     (format t "~%" #\linefeed)))))
 
 (print (mapcar #'position-list-to-board-list king-moves-list))
 (print (mapcar #'make-bb (mapcar #'position-list-to-board-list king-moves-list)))
@@ -231,6 +316,7 @@
 	       (mapcar #'make-bb (mapcar #'position-list-to-board-list king-moves-list))))
 (print (integer-length 4))
 (print (logxor 4 (ash 1 (- (integer-length 4) 1))))
+(print (position-list (aref knight-positions 33)))
 (print (position-list (make-bb (list 
 				empty-rank
 				empty-rank
@@ -240,3 +326,14 @@
 				empty-rank
 				empty-rank
 				(list 1 0 0 0 0 0 0 1)))))
+(print (position-board (aref knight-positions 33)))
+(print (position-board (make-bb (list 
+				empty-rank
+				empty-rank
+				empty-rank
+				empty-rank
+				empty-rank
+				empty-rank
+				empty-rank
+				(list 1 0 0 0 0 0 0 1)))))
+(print (position-board (aref line-up 33)))
