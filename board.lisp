@@ -1,3 +1,42 @@
+(defstruct chessboard
+  (white-pawn   0 :type (unsigned-byte 64))
+  (white-rook   0 :type (unsigned-byte 64))
+  (white-knight 0 :type (unsigned-byte 64))
+  (white-bishop 0 :type (unsigned-byte 64))
+  (white-queen  0 :type (unsigned-byte 64))
+  (white-king   0 :type (unsigned-byte 64))
+  (black-pawn   0 :type (unsigned-byte 64))
+  (black-rook   0 :type (unsigned-byte 64))
+  (black-knight 0 :type (unsigned-byte 64))
+  (black-bishop 0 :type (unsigned-byte 64))
+  (black-queen  0 :type (unsigned-byte 64))
+  (black-king   0 :type (unsigned-byte 64))
+  (white-pieces 0 :type (unsigned-byte 64))
+  (black-pieces 0 :type (unsigned-byte 64))
+  (all-pieces   0 :type (unsigned-byte 64))
+  (en-passant   nil))
+
+(defconstant MAX_MOVES 128)
+
+(defstruct move
+  (from-x 0 :type (mod 8))
+  (from-y 0 :type (mod 8))
+  (to-x   0 :type (mod 8))
+  (to-y   0 :type (mod 8))
+  (tag    0 :type (mod 16)))
+
+(defun return-king-moves (color moves)
+  (declare (optimize speed)
+           (type symbol color)
+           (type (vector move MAX_MOVES)))
+  )
+
+(defun return-moves (color)
+  (let ((moves (make-array MAX_MOVES  
+                           :element-type move
+                           :fill-pointer 0)))
+    ))
+
 (defun make-bb-from-string (b)
   (declare (optimize speed (safety 0)) 
            (type string b))
@@ -298,6 +337,14 @@
 	   (push index position-list)
 	   (setf bb (logxor bb (ash 1 index)))))
     position-list))
+
+(defmacro with-position (bb param body)
+  (let ((name (gensym)))
+    `(let ((,name ,bb))
+       (loop while (< ,name 0) do
+            (let ((,param (- (integer-length ,name) 1)))
+              ,body
+              (setf ,name (logxor ,name (ash 1 ,param))))))))
 
 (defun position-board (bb)
   (format t "~%" #\linefeed)
