@@ -1,3 +1,48 @@
+(defun bitscan-right (bb)
+  (declare (optimize speed)
+           (type (unsigned-byte 64) bb)
+           (inline integer-length))
+  (integer-length bb))
+
+(defun bitscan-left (bb)
+  (declare (optimize speed)
+           (type (unsigned-byte 64) bb)
+           (inline integer-length))
+  (let ((top (ash 1 63)))
+    (declare (type (unsigned-byte 64) top))
+    (integer-length (logand bb (- top bb)))))
+
+(defun position-list (bb)
+  (declare (optimize speed)
+	   (type (unsigned-byte 64) bb))
+  (let ((position-list))
+    (loop while (> bb 0) do
+	 (let ((index (- (bitscan-right bb) 1)))
+	   (push index position-list)
+	   (setf bb (logxor bb (ash 1 index)))))
+    position-list))
+
+(defmacro with-position (bb param body)
+  (let ((name (gensym)))
+    `(let ((,name ,bb))
+       (declare (type (unsigned-byte 64) ,name))
+       (loop while (< ,name 0) do
+            (let ((,param (- (bitscan-right ,name) 1)))
+              (declare (type (mod 64) ,param))
+              ,body
+              (setf ,name (logxor ,name (ash 1 ,param))))))))
+
+(defun position-board (bb)
+  (format t "~%" #\linefeed)
+  (print (position-list bb))
+  (let ((list (position-list bb)))
+    (loop for i from 64 downto 0 do
+	 (if (find i list)
+	     (format t "1 ")
+	     (format t "0 "))
+	 (if (= (mod i 8) 0)
+	     (format t "~%" #\linefeed)))))
+
 (defstruct chessboard
   (white-pawn   0 :type (unsigned-byte 64))
   (white-rook   0 :type (unsigned-byte 64))
@@ -19,17 +64,36 @@
 (defconstant MAX_MOVES 128)
 
 (defstruct move
-  (from-x 0 :type (mod 8))
-  (from-y 0 :type (mod 8))
-  (to-x   0 :type (mod 8))
-  (to-y   0 :type (mod 8))
-  (tag    0 :type (mod 16)))
+  (from 0 :type (mod 64))
+  (to   0 :type (mod 64))
+  (tag  0 :type (mod 16)))
 
-(defun return-king-moves (color moves)
+(defun return-king-moves (board color moves)
   (declare (optimize speed)
+           (type board chessboard)
            (type symbol color)
            (type (vector move MAX_MOVES)))
-  )
+  (let ((pos (if (eq color :white)
+                 (chessboard-white-king board)
+                 (chessboard-black-king board))))
+    (declare (type (simple-array (unsigned-byte 64) 64) king-positions))
+    (let* ((p1 (bitscan-right pos))
+           (table (aref king-positions p1)))
+      (with-position table p2 (vector-push (make-move p1 p2 0) moves)))))
+
+(defun return-knight-moves (board color moves)
+  (declare (optimize speed)
+           (type board chessboard)
+           (type symbol color)
+           (type (vector moves MAX_MOVES)))
+  (let ((pos (if (eq color :white)
+                 (chessboard-white-knight board)
+                 (chessboard-black-knight board))))
+    (declare (type (simple-array (unsigned-byte 64) 64) knight-positions))
+    (with-position pos p1
+                   (let ((table (aref knight-positions p1)))
+                     (with-position table p2
+                                    (vector-push (make-move p1 p2 0) moves))))))
 
 (defun return-moves (color)
   (let ((moves (make-array MAX_MOVES  
@@ -328,34 +392,7 @@
 (make-precomputed-table
  64 diag-down-left (mapcar #'position-list-to-board-list diag-down-left-list))
 
-(defun position-list (bb)
-  (declare (optimize speed)
-	   (type (unsigned-byte 64) bb))
-  (let ((position-list))
-    (loop while (> bb 0) do
-	 (let ((index (- (integer-length bb) 1)))
-	   (push index position-list)
-	   (setf bb (logxor bb (ash 1 index)))))
-    position-list))
 
-(defmacro with-position (bb param body)
-  (let ((name (gensym)))
-    `(let ((,name ,bb))
-       (loop while (< ,name 0) do
-            (let ((,param (- (integer-length ,name) 1)))
-              ,body
-              (setf ,name (logxor ,name (ash 1 ,param))))))))
-
-(defun position-board (bb)
-  (format t "~%" #\linefeed)
-  (print (position-list bb))
-  (let ((list (position-list bb)))
-    (loop for i from 64 downto 0 do
-	 (if (find i list)
-	     (format t "1 ")
-	     (format t "0 "))
-	 (if (= (mod i 8) 0)
-	     (format t "~%" #\linefeed)))))
 
 (print (mapcar #'position-list-to-board-list king-moves-list))
 (print (mapcar #'make-bb (mapcar #'position-list-to-board-list king-moves-list)))
