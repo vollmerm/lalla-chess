@@ -26,11 +26,14 @@
     m))
 
 ;; Generate moves using tables in piece.lisp
+(defconstant max-move-count 218)
 (defun* (generate-moves -> (vector (unsigned-byte 16))) ((square (mod 129)))
   (*let ((piece (unsigned-byte 4) (aref board square))
 	 (color (unsigned-byte 1) (piece-color piece))
 	 (type (unsigned-byte 3) (piece-type piece))
 	 (sliding boolean (aref sliding-piece type))
 	 (start (unsigned-byte 8) (aref step-offset type))
-	 )
+	 (step (unsigned-byte 8) (aref piece-steps start))
+	 (moves-vector (vector (unsigned-byte 16))
+		       (make-array max-move-count :fill-pointer 0)))
 	))
