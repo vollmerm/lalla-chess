@@ -7,5 +7,8 @@
   :license "Simplified BSD License"
   :depends-on (#:defstar)
   :components ((:file "package")
-               (:file "lalla")))
+               (:file "piece")
+	       (:file "board")
+	       (:file "move")
+	       (:file "lalla")))
 
