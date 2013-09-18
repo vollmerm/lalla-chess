@@ -1,6 +1,7 @@
 ;;;; board.lisp
 
 (in-package #:lalla)
+(declaim (optimize speed))
 
 (defparameter initial-positions
   #( 5  3  4  6  7  4  3  5
@@ -19,7 +20,7 @@
      0  0  0  0  0  0  0  0
     13 11 12 15 14 12 11 13
      0  0  0  0  0  0  0  0))
-(defparameter board
+(defparameter* (board (simple-array (unsigned-byte 4) 128))
   (make-array 128 :element-type '(unsigned-byte 4) 
 	      :initial-contents initial-positions))
 (defun reset-board ()
@@ -28,6 +29,9 @@
 
 (defparameter* (w-castle boolean) nil)
 (defparameter* (b-castle boolean) nil)
+(defparameter* (ep boolean) nil)
+(defparameter* (w-ep (mod 8)) 0)
+(defparameter* (b-ep (mod 8)) 0)
 
 (defun* (off-board -> boolean) ((i (mod 128)))
   (/= (logand i #x88) 0))
@@ -35,6 +39,8 @@
   (logand (+ i 9) (lognot #x88)))
 (defun* (get-piece -> (unsigned-byte 4)) ((i (mod 128)))
   (aref board i))
+(defun* (get-rank -> (mod 8)) ((i (mod 128)))
+  (/ (logand i #x70) 16))
 (defun* (square-color -> (unsigned-byte 1)) ((i (mod 128)))
   (piece-color (get-piece i)))
 (defun* (square-type -> (unsigned-byte 3)) ((i (mod 128)))
@@ -42,3 +48,19 @@
 (defun* (blank-square -> boolean) ((i (mod 128)))
   (= 0 (square-type i)))
 (declaim (inline off-board next-square get-piece square-color square-type blank-square))
+
+(defun* (make-move -> (unsigned-byte 4)) ((m (unsigned-byte 16)))
+  (*let ((from (unsigned-byte 7) (move-from m))
+	 (to (unsigned-byte 7) (move-to m))
+	 (moving (unsigned-byte 4) (get-piece from))
+	 (replaced (unsigned-byte 4) (get-piece to)))
+	(setf (aref board from) 0)
+	(setf (aref board to) moving)
+	replaced))
+(defun* (unmake-move -> :void) ((m (unsigned-byte 16)) (r (unsigned-byte 4)))
+  (*let ((from (unsigned-byte 7) (move-from m))
+	 (to (unsigned-byte 7) (move-to m))
+	 (moving (unsigned-byte 4) (get-piece to)))
+	(setf (aref board from) moving)
+	(setf (aref board to) r)
+	(values)))
