@@ -77,7 +77,7 @@
 			       (unless sliding (return))))) ; break if not sliding piece		   
 		    (incf start) ; try next step
 		    (setf step (aref piece-steps start)))))
-    moves-vector))
+    (sort moves-vector #'> #'move-capture)))
 		    
 
 (defun* (generate-pawn-special -> :void) 
