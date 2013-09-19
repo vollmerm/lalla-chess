@@ -18,7 +18,7 @@
      0  0  0  0  0  0  0  0
     10 10 10 10 10 10 10 10
      0  0  0  0  0  0  0  0
-    13 11 12 15 14 12 11 13
+    13 11 12 14 15 12 11 13
      0  0  0  0  0  0  0  0))
 (defparameter* (board (simple-array (unsigned-byte 4) 128))
   (make-array 128 :element-type '(unsigned-byte 4) 

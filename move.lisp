@@ -81,7 +81,7 @@
 		    
 
 (defun* (generate-pawn-special -> :void) 
-    ((square (mod 128)) (moves-vector (simple-array (unsigned-byte 16 max-move-count)))
+    ((square (mod 128)) (moves-vector (vector (unsigned-byte 16)))
      (type (unsigned-byte 3)))
   (when (or (and (= type 1) (= (get-rank square) 6))
 	    (and (= type 2) (= (get-rank square) 1)))
@@ -101,3 +101,10 @@
 		      0))))))
   (values)) ; return nothing
 		    
+(defun* (king-capture -> boolean) ((m (unsigned-byte 16)))
+  (*let ((to (unsigned-byte 7) (move-to m))
+	 (replaced (unsigned-byte 4) (aref board to))
+	 (type (unsigned-byte 3) (piece-type replaced)))
+	(= type 7)))
+(declaim (inline king-capture))
+	
