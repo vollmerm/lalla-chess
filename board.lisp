@@ -37,6 +37,9 @@
 (defparameter* (w-ep (mod 8)) 0)
 (defparameter* (b-ep (mod 8)) 0)
 
+(defun* (convert-128-to-64 -> (mod 64)) ((s (mod 128)))
+  (+ (logand s 7) (* 8 (ash s -4))))
+
 (defun* (off-board -> boolean) ((i (mod 128)))
   (/= (logand i #x88) 0))
 (defun* (next-square -> (mod 128)) ((i (mod 128)))

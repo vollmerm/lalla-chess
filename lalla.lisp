@@ -12,7 +12,7 @@
   (*let ((score (signed-byte 16) 
 		(if (> dept-left 1)
 		    (- fail-amount)
-		    (static-eval)))
+		    (static-eval side)))
 	 (moves (vector (unsigned-byte 16)) 
 		(generate-moves side))
 	 (saved-piece (unsigned-byte 4) 0)

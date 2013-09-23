@@ -3,23 +3,22 @@
 (in-package #:lalla)
 (declaim (optimize speed))
 
-(defun* (static-eval -> (signed-byte 16)) ()
-  (*let ((index (mod 64) 0)
-         (score (signed-byte 16) 0))
+(defun* (static-eval -> (signed-byte 16)) ((side (unsigned-byte 1)))
+  (*let ((score (signed-byte 16) 0))
         (loop
            for square from 0 to 127
            when (not (off-board square)) do
-             (progn
-               (setf score (score-index index))
-               (incf index)))
+             (incf score (score-index score))
         score)))
 
-(defun* (score-index -> (signed-byte 16)) ((index (mod 64)))
+(defun* (score-index -> (signed-byte 16))
+    ((index (mod 128)) (side (unsigned-byte 1)))
+  ;; need some way to handle black's turn
+  ;; maybe adding extra 0 padding at the top to the tables
   )
 
 (defparameter pawn-table
   #(0 0 0 0 0 0 0 0
-    0 0 0 0 0 0 0 0
     50 50 50 50 50 50 50 50
     0 0 0 0 0 0 0 0
     10 10 20 30 30 20 10 10
