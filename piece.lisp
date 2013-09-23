@@ -16,8 +16,8 @@
     (make-array 34
                 :element-type (signed-byte 16)
                 :initial-contents
-                #(15 17 0                        ;; white pawn
-                  -15 -17 0                      ;; black pawn
+                #(-15 -17 0                      ;; white pawn
+                  15 17 0                        ;; black pawn
                   14 18 31 33 -14 -18 -31 -33 0  ;; knight
                   15 17 -15 -17 0                ;; bishop
                   1 16 -1 -16 0                  ;; rook

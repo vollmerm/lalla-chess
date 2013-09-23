@@ -85,7 +85,7 @@
      (type (unsigned-byte 3)))
   (when (or (and (= type 1) (= (get-rank square) 6))
 	    (and (= type 2) (= (get-rank square) 1)))
-    (let ((increment (if (= type 1) 16 -16)))
+    (let ((increment (if (= type 1) -16 16)))
       (when (blank-square (+ square increment))
 	(vector-push
 	 (make-move square (+ square increment)
