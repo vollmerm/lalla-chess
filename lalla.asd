@@ -10,5 +10,6 @@
                (:file "piece")
 	       (:file "board")
 	       (:file "move")
+	       (:file "score")
 	       (:file "lalla")))
 

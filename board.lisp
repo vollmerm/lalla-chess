@@ -24,7 +24,7 @@
      0  0  0  0  0  0  0  0
      5  3  4  6  7  4  3  5 ;; white pieces
      0  0  0  0  0  0  0  0))
-(defparameter* (board (simple-array (unsigned-byte 4) 128))
+(defparameter* (board (simple-array (unsigned-byte 4) (128)))
   (make-array 128 :element-type '(unsigned-byte 4) 
 	      :initial-contents initial-positions))
 (defun reset-board ()

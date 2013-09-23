@@ -19,7 +19,7 @@
   (= (ldb (byte 1 2) (move-tag m)) 1))
 (defun* (move-castle -> boolean) ((m (unsigned-byte 18)))
   (= (ldb (byte 1 3) (move-tag m)) 1))
-(defun* (make-move -> (unsigned-byte 16))
+(defun* (create-move -> (unsigned-byte 16))
     ((from (unsigned-byte 7)) (to (unsigned-byte 7)) 
      (capture (unsigned-byte 1)) (promotion (unsigned-byte 1))
      (ep (unsigned-byte 1)) (castle (unsigned-byte 1)))
@@ -67,17 +67,17 @@
 			     (progn ; make move
 			       ; generate base more
 			       (vector-push
-				(make-move square iter-square ; to/from
-					   (if (blank-square iter-square) 0 1) ; capture
-					   0 ; promotion
-					   0 ; ep
-					   0) ; castle
+				(create-move square iter-square ; to/from
+					     (if (blank-square iter-square) 0 1) ; capture
+					     0 ; promotion
+					     0 ; ep
+					     0) ; castle
 				moves-vector) ; TODO: set move tag
 			       (generate-pawn-special square moves-vector type)
 			       (unless sliding (return))))) ; break if not sliding piece		   
 		    (incf start) ; try next step
 		    (setf step (aref piece-steps start)))))
-    (sort moves-vector #'> #'move-capture)))
+    (sort moves-vector #'> :key #'move-capture)))
 		    
 
 (defun* (generate-pawn-special -> :void) 
@@ -88,17 +88,20 @@
     (let ((increment (if (= type 1) -16 16)))
       (when (blank-square (+ square increment))
 	(vector-push
-	 (make-move square (+ square increment)
-		    0
-		    0
-		    0)
+	 (create-move square (+ square increment)
+		      0
+		      0
+		      0
+		      0)
 	 moves-vector)
 	(when (blank-square (+ square (* 2 increment)))
 	  (vector-push
-	   (make-move square (+ square (* 2 increment))
-		      0
-		      1 ; ep move
-		      0))))))
+	   (create-move square (+ square (* 2 increment))
+			0
+			1 ; ep move
+			0
+			0)
+	   moves-vector)))))
   (values)) ; return nothing
 		    
 (defun* (king-capture -> boolean) ((m (unsigned-byte 16)))
