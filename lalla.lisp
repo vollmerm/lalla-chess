@@ -5,8 +5,6 @@
 
 (defparameter* (fail-amount (signed-byte 16)) 8000)
 
-(defun* (static-eval -> (signed-byte 16)) ()
-  )
 
 (defun* (negamax -> (signed-byte 16)) 
     ((side (unsigned-byte 1)) (alpha (signed-byte 16)) 
@@ -34,7 +32,7 @@
 					  (- depth-left 1))))
 	     (unmake-move current-move saved-piece)
 	     (when (> temp-score score)
-	       (setf score temp-score)
-	       (when (>= score beta) (return))))
+               (when (>= temp-score beta) (return))
+	       (setf score temp-score)))
 	           
 	score))

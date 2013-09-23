@@ -12,14 +12,21 @@
 (declaim (inline piece-color piece-type))
 
 ;; Piece steps define the number of steps each piece takes
-(defparameter piece-steps 
-  #(15 17 0                        ;; white pawn
-    -15 -17 0                      ;; black pawn
-    14 18 31 33 -14 -18 -31 -33 0  ;; knight
-    15 17 -15 -17 0                ;; bishop
-    1 16 -1 -16 0                  ;; rook
-    1 16 15 17 -1 -16 -15 -17 0))  ;; king/queen
-(defparameter step-offset
-  #(0 0 4 8 17 22 27 27))
-(defparameter sliding-piece
-  #(nil nil nil nil t t t nil))
+(defparameter* (piece-steps (simple-array (signed-byte 16) 34)) 
+    (make-array 34
+                :element-type (signed-byte 16)
+                :initial-contents
+                #(15 17 0                        ;; white pawn
+                  -15 -17 0                      ;; black pawn
+                  14 18 31 33 -14 -18 -31 -33 0  ;; knight
+                  15 17 -15 -17 0                ;; bishop
+                  1 16 -1 -16 0                  ;; rook
+                  1 16 15 17 -1 -16 -15 -17 0))) ;; king/queen
+(defparameter* (step-offset (simple-array (mod 28) 8))
+    (make-array 8
+                :element-type '(mod 8)
+                :initial-contents #(0 0 4 8 17 22 27 27)))
+(defparameter* (sliding-piece (simple-array boolean 8))
+    (make-array 8
+                :element-type 'boolean
+                :initial-contents #(nil nil nil nil t t t nil)))
