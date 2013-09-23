@@ -115,9 +115,7 @@
 
 (defun* (score-table-index -> (mod 136))
     ((index (mod 128)) (side (unsigned-byte 1)))
-  (if (= side 0) 
-      (+ index 8) ; it's white
-      (- (- 127 index) 8))) ; it's black
+  (if (= side 0) (+ index 8) (- 127 index)))
 
 (defun* (piece-score -> (signed-byte 16))
     ((piece (unsigned-byte 4)))
@@ -149,7 +147,8 @@
 (defun* (static-eval -> (signed-byte 16)) ((side (unsigned-byte 1)))
   (*let ((score (signed-byte 16) 0))
         (loop for square from 0 to 127
-	      when (not (off-board square)) 
+	      when (and (not (blank-square square))
+			(not (off-board square))) 
 	      do (incf score (score-square square side)))
 	score))
 
