@@ -11,12 +11,16 @@
   (ldb (byte 7 7) m))
 (defun* (move-tag -> (unsigned-byte 4)) ((m (unsigned-byte 18)))
   (ldb (byte 4 14) m))
+(defun* (move-capture-bit -> (unsigned-byte 1)) ((m (unsigned-byte 18)))
+  (ldb (byte 1 0) (move-tag m)))
 (defun* (move-capture -> boolean) ((m (unsigned-byte 18)))
-  (= (ldb (byte 1 0) (move-tag m)) 1))
+  (= (move-capture-bit m) 1))
 (defun* (move-promotion -> boolean) ((m (unsigned-byte 18)))
   (= (ldb (byte 1 1) (move-tag m)) 1))
+(defun* (move-ep-bit -> (unsigned-byte 1)) ((m (unsigned-byte 18)))
+  (ldb (byte 1 2) (move-tag m)))
 (defun* (move-ep -> boolean) ((m (unsigned-byte 18)))
-  (= (ldb (byte 1 2) (move-tag m)) 1))
+  (= (move-ep-bit m) 1))
 (defun* (move-castle -> boolean) ((m (unsigned-byte 18)))
   (= (ldb (byte 1 3) (move-tag m)) 1))
 (defun* (create-move -> (unsigned-byte 16))
@@ -32,8 +36,8 @@
     (setf (ldb (byte 1 16) m) ep)
     (setf (ldb (byte 1 17) m) castle)
     m))
-(declaim (inline move-from move-to move-tag move-capture move-promotion
-		 move-ep move-castle make-move))
+(declaim (inline move-from move-to move-tag move-capture move-capture-bit
+		 move-promotion move-ep move-ep-bit move-castle make-move))
 (defconstant max-move-count 218)
      
 ;; Generate moves using tables in piece.lisp
@@ -77,7 +81,7 @@
 			       (unless sliding (return))))) ; break if not sliding piece		   
 		    (incf start) ; try next step
 		    (setf step (aref piece-steps start)))))
-    (sort moves-vector #'> :key #'move-capture)))
+    (sort moves-vector #'> :key #'move-capture-bit)))
 		    
 
 (defun* (generate-pawn-special -> :void) 

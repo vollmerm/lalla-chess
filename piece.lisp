@@ -30,9 +30,9 @@
 				    15 17 -15 -17 0                ;; bishop
 				    1 16 -1 -16 0                  ;; rook
 				    1 16 15 17 -1 -16 -15 -17 0))) ;; king/queen
-(defparameter* (step-offset (simple-array (mod 25) (8)))
+(defparameter* (step-offset (simple-array (mod 26) (8)))
     (make-array 8
-                :element-type '(mod 25)
+                :element-type '(mod 26)
                 :initial-contents '(0 0 3 6 15 20 25 25)))
 (defparameter* (sliding-piece (simple-array boolean (8)))
     (make-array 8

@@ -17,12 +17,12 @@
 	 (saved-piece (unsigned-byte 4) 0)
 	 (temp-score (signed-byte 16) 0))
 	(loop for current-move across moves do
-	     (progn ;; loop through generated moves
+	     (block inner ;; loop through generated moves
 	       (when (king-capture current-move)
 		 (setf score fail-amount))
 	       (when (or (<= depth-left 1) 
 			 (>= score beta))
-		 (return))
+		 (return-from inner))
 	       (setf saved-piece (make-move current-move))
 	       (setf temp-score (- (negamax (if (= side 1) 0 1)
 					    (- beta)
@@ -32,6 +32,6 @@
 					    (- depth-left 1))))
 	       (unmake-move current-move saved-piece)
 	       (when (> temp-score score)
-		 (when (>= temp-score beta) (return))
+		 (when (>= temp-score beta) (return-from inner))
 		 (setf score temp-score))))
 	score))
