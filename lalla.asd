@@ -11,5 +11,6 @@
 	       (:file "board")
 	       (:file "move")
 	       (:file "score")
+	       (:file "ui")
 	       (:file "lalla")))
 

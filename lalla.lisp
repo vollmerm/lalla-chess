@@ -35,8 +35,6 @@
                      (when (>= score beta) (return-from inner)))))
 	    score)))
 
-(defparameter* (max-seconds positive-integer) 8)
-
 (defun* (depth-limited-search -> (unsigned-byte 18))
     ((side (unsigned-byte 1)) (depth (unsigned-byte 8)))
   (*let ((moves (vector (unsigned-byte 18)) (generate-moves side))
@@ -58,6 +56,8 @@
                    (setf best-score temp-score)
                    (setf best-move current-move))))
         best-move))
+
+(defparameter* (max-seconds positive-integer) 8)
 
 (defun* (iterative-deepening-search -> (unsigned-byte 18))
     ((side (unsigned-byte 1)))
