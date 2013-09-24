@@ -140,7 +140,8 @@
 	 (color (unsigned-byte 1) (piece-color piece))
 	 (mul (signed-byte 16) (if (= color side) 1 -1)))
 	(* mul (+ (piece-score piece)
-		  (score-table index piece)))))
+		  (score-table index piece)
+                  ))))
 
 (declaim (inline score-square))
 

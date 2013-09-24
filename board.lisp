@@ -80,3 +80,15 @@
 	(setf (aref board to) r)
 	(when (= ep 1) (setf board-ep nil))
 	(values)))
+
+(defparameter* (board-piece-string string) "-p nbrqk  PNBRQK")
+
+(defun* (board->string -> string) ()
+  (with-output-to-string (stream)
+      (loop for i from 0 to 127 
+         when (not (off-board i)) do
+           (progn
+             (when (and (> i 0) (= (mod i 8) 0))
+               (write-char #\return stream)
+               (write-char #\linefeed stream))
+             (write-char (char board-piece-string (get-piece i)) stream) ))))
