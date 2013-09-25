@@ -103,7 +103,7 @@
 ;; NOTE: this isn't actually a time limit for the search, but a time
 ;; at which we would not do another search. The actual search might take
 ;; several seconds longer than this value.
-(defparameter* (max-seconds positive-integer) 8)
+(defparameter* (max-seconds integer) 8)
 
 
 ;; Iterative deepening searches do incremental depth-limited searches,
@@ -111,13 +111,13 @@
 ;; the result of the last search as its value.
 (defun* (iterative-deepening-search -> (unsigned-byte 18))
     ((side (unsigned-byte 1)))
-  (*let ((start-time positive-integer (get-internal-real-time))
+  (*let ((start-time integer (get-internal-real-time))
          (depth (unsigned-byte 8) 3)
          (best-move (unsigned-byte 18) 0))
         (loop while (< (/ (- start-time (get-internal-real-time))
                          internal-time-units-per-second)
                        max-seconds) do
              (progn
-               (setf best-move (negamax side (- fail-amount) fail-amount depth))
+               (setf best-move (depth-limited-search side depth))
                (incf depth)))
         best-move))

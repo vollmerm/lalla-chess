@@ -81,25 +81,26 @@
 ;; the board during searching. Everything that's done to the board needs
 ;; to be undone, or at least be able to be undone. For that reason, make-move
 ;; returns a number with the data necessary to restore the board state.
-(defun* (make-move -> (unsigned-byte 12)) ((m (unsigned-byte 13)))
+(defun* (make-move -> (unsigned-byte 13)) ((m (unsigned-byte 18)))
   ;; Bind some data to names so it is easier to work with
   (*let ((from (unsigned-byte 7) (move-from m)) ;; extract out move positions
 	 (to (unsigned-byte 7) (move-to m))
 	 (ep (unsigned-byte 1) (move-ep-bit m))
 	 (moving (unsigned-byte 4) (get-piece from))
-	 (replaced (unsigned-byte 12) (get-piece to))
+	 (replaced (unsigned-byte 4) (get-piece to))
 
          ;; Some information will have to be restored when this move is unmade,
          ;; and all that information is bundled up in the unsigned integer ret.
          ;; This data will be an extra parameter to unmake-move.
          (ret (unsigned-byte 13) replaced)) 
 
+
         ;; Handle e.p. capture
         (when (and board-ep
                    (= to square-ep))
           ;; This is an e.p. capture, on square square-ep
           (setf (ldb (byte 1 12) ret) 1) ; set flag in ret for e.p. capture 
-          (if (= (get-rank to) 6)        ; set captured square to 0
+          (if (= (get-rank to) 5)        ; set captured square to 0
               (setf (aref board (- to 16)) 0)
               (setf (aref board (+ to 16)) 0)))
 
@@ -119,7 +120,7 @@
               (setf board-ep t)
               ; the square-ep value should be the square that was jumped over
               (setf square-ep
-                    (if (= (get-rank to) 6) (- to 16) (+ to 16))))
+                    (if (= (get-rank to) 4) (+ to 16) (- to 16))))
             
             ;; This was not an e.p. move, so the board-ep value needs to
             ;; be nil. If it was true previously, it no longer applies,
@@ -133,7 +134,7 @@
 (defun* (unmake-move -> :void) ((m (unsigned-byte 18)) (r (unsigned-byte 13)))
   (*let ((from (unsigned-byte 7) (move-from m)) ;; bind these for convenience
 	 (to (unsigned-byte 7) (move-to m))
-	 (ep (unsigned-byte 1) (ldb (byte 1 4 r))) ;; restore to board-ep
+	 (ep (unsigned-byte 1) (ldb (byte 1 4) r)) ;; restore to board-ep
          (sqep (unsigned-byte 7) (ldb (byte 7 5) r)) ;; restore to square-ep
          (epcap (unsigned-byte 1) (ldb (byte 1 12) r)) ;; was an ep capture done?
          (old-piece (unsigned-byte 4) (ldb (byte 4 0) r)) ;; piece replaced in move
@@ -144,7 +145,7 @@
 	(setf (aref board to) old-piece)
 
         ;; restore ep state
-	(setf board-ep ep)
+	(setf board-ep (= ep 1))
         (setf square-ep sqep)
 
         ;; check if an ep capture occured

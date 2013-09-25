@@ -130,9 +130,7 @@
                   ;; at the board, or remember the layout of the 0x88 board,
                   ;; you can see that adding these numbers to the current
                   ;; bishop location will yield one-step jumps for it.
-                    
-		    (setf iter-square square) ;; add offset
-
+                    (setf iter-square square) ;; add offset
 
                   ;; start inner block. this cancel be returned from in the loop
 		    (block inner
@@ -167,15 +165,13 @@
                                  (unless sliding (return-from inner)))))) ;; break if not sliding pieces
                     
                     ;; increment the start value to try the next offset amount
-                    (incf start))
-               (setf step (aref piece-steps start)))
+                    (incf start)
+                    (setf step (aref piece-steps start)))))
 
-
-       ;; now that the moves have been generated, they need to be sorted.
-       ;; currently this just uses a very simple sort procedure. all captures
-       ;; go first, then everything else
-
-         (sort moves-vector #'> :key #'move-capture-bit))))
+    ;; now that the moves have been generated, they need to be sorted.
+    ;; currently this just uses a very simple sort procedure. all captures
+    ;; go first, then everything else
+     (sort moves-vector #'> :key #'move-capture-bit)))
 		    
 
 ;; Pawns have weird rules. This function handles moving forward.

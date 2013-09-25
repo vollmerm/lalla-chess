@@ -33,7 +33,7 @@
 	   (let ((from (move-from current-move))
 		 (to (move-to current-move)))
 	     (when (and (= from (elt mv 0))
-			(= to (elt mf 1)))
+			(= to (elt mv 1)))
 	       (setf valid t)
 	       (return-from find-move)))))
     valid))
@@ -44,7 +44,7 @@
         (promotion (elt mv 2))
         (ep (elt mv 3))
         (castle (elt mv 4))
-        (move (unsigned-byte 18) 0))
+        (move 0))
     (setf move (create-move from to
                             (if (blank-square to) 0 1)
                             (if promotion 1 0)
